@@ -24,7 +24,7 @@ count_ones <- function(x) {
       result <- result + 1
     }
   }
-  result
+  return(result)
 }
 ```
 
@@ -35,12 +35,42 @@ count_ones <- function(x) {
 ### Functional
 
 * program = formula for output depending on input
-  * enforces consiseness
+  * enforces conciseness
   * in R: uses the available **efficient** implementations
+
+&nbsp;
 
 ```r
 count_ones <- function(x) sum(x == 1)
 ```
+
+:::
+
+::::
+
+# The functional programming style
+
+:::: {.columns}
+
+::: {.column }
+
+### Constructs to <font style="color: var(--csc-magenta);">avoid</font>
+
+* `{ }`
+* `for`, `while`, `if`
+* `<-` more than once per identifier
+
+:::
+
+::: {.column }
+
+### Instead make <font style="color: var(--csc-green);">heavy use</font> of
+
+* small function definitions <br/>
+  `function(args) formula`
+* vectors and matrices
+  * `seq()`, `rep()` etc.
+* the `apply()` family
 
 :::
 
@@ -81,29 +111,49 @@ y <- sum(x^2)
 
 ::::
 
-# Mapping
+# The Map-Reduce paradigm
 
-Simple operations written directly:
-* arithmetics
-* built-in functions.
+:::: {.columns}
 
-# Mapping
+::: {.column }
 
-More complex operations can be done using `*apply()` functions.
+### MAP
 
-# Mapping matrices row- or column-wise
+* arithmetics <br/>
+  `x+1`, `2^x`, `log(x)`, ...
+* string operations <br/>
+  `paste()`, `grepl()`, ...
+* logical operations <br/>
+  `ifelse()`, `x > y`, ...
 
-TODO
+:::
 
-# Reducing
+::: {.column }
 
-TODO built-in functions: sum etc.
+### REDUCE
 
-# Reducing
+* arithmetics <br/>
+  `sum()`, `max()`, `mean()`
+* string operations <br/>
+  `paste(..., collapse='')`
+* logical operations <br/>
+  `any()`, `all()`
 
-sapply()
+:::
 
-# Map-Reduce: a more complex example
+::::
+
+# The `apply()` family
+
+Calculate a function on each element of a sequence ("map"):
+
+* `apply()`: for matrices (row- or column-wise),
+* `lapply()`: for lists,
+* `mapply()`: element-wise for multiple vectors,
+* `sapply()`: like `lapply()`, but simplifies the result
+  * convert to a vector/matrix if possible.
+
+# Functional programming: a more complex example
 
 :::: { .columns }
 
@@ -162,35 +212,9 @@ dice_game <- function(n)
 
 ::::
 
-# Map-Reduce: a more complex example
+# Benefits of functional programming in R
 
-:::: { .columns }
+* clear and concise code,
+* uses efficient built-in implementations,
+* prepares the ground for parallelization (esp. map-reduce).
 
-::: { .column .small }
-
-TODO show where is map and where reduce
-
-|   |   |   |   |   |   |
-|---|---|---|---|---|---|
-|   | 6 | 1 | 4 | 2 | 2 |
-|   | 4 | 4 | 6 | 5 | 3 |
-|   | 3 | 2 | 4 | 4 | 1 |
-|   | 1 | 1 | 3 | 4 | 4 |
-|   | 2 | 2 | 4 | 5 | 4 |
-
-:::
-
-::: { .column }
-
-:::
-
-::::
-
-# The Map-Reduce paradigm
-
-Benefits:
-
-* parallelization: the MAP step can be performed independently for each element,
-* clear and concise description,
-* operations on entire sequences whenever possible.
-* maximize the number of simultaneous operations (e.g. sampling)!
