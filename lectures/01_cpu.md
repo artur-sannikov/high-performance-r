@@ -4,6 +4,28 @@ event: High Performance R
 author: ["Heli Juottonen", "Maciej Janicki"]
 ---
 
+# High Performance R is about...
+
+1.  Writing performant R code
+    -   optimization
+    -   profiling
+2.  Running R code on HPC systems
+    -   leveraging multi-core and multi-node computations
+    -   avoiding waste of resources
+
+# How to optimize R code?
+
+R is a **high-level** programming language:
+
+* you are not *implementing* algorithms, you are *calling* algorithms,
+* implementation often done in C++ or Fortran,
+* memory and CPU usage often governed by the specific package.
+
+Basic rules:
+
+* use built-in functions and existing packages whenever possible,
+* check for performance-related settings in your packages.
+
 # Idea
 
 The same thing can be achieved in slower or faster ways.
