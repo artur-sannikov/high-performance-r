@@ -20,8 +20,8 @@ $$
 <center>
 |   | $\cdot_1$  | $\cdot_2$  | $\cdot_3$  | $\cdot_4$  | $\cdot_5$ |
 |--:|----:|----:|----:|----:|----:|
-| $x$ |  1  |  2  |  3  |   4 |  5 |
-| $y$ |  1  |  3  |  6  |   10 | 15 |
+| $x_\cdot$ |  1  |  2  |  3  |   4 |  5 |
+| $y_\cdot$ |  1  |  3  |  6  |   10 | 15 |
 |  |  =1  | =1+2  |  =1+2+3  |  =1+2+3+4 | =1+2+3+4+5 |
 </center>
 
@@ -44,7 +44,7 @@ slow_cumsum <- function(x) {
 }
 ```
 
-```
+```txt
 > x <- c(1, 2, 3, 4, 5)
 > slow_cumsum(x)
 [1]  1  3  6 10 15
@@ -56,7 +56,7 @@ slow_cumsum <- function(x) {
 
 <font style="font-weight: bold; color: var(--csc-green);">RIGHT</font>
 
-```
+```txt
 > x <- c(1, 2, 3, 4, 5)
 > cumsum(x)
 [1]  1  3  6 10 15
@@ -103,7 +103,7 @@ Sys.time()-t
 
 ::: {.column}
 
-```
+```txt
 Time difference of 0.1100259 secs
 ```
 
@@ -135,7 +135,7 @@ Sys.time()-t
 
 ::: {.column}
 
-```
+```txt
 Time difference of 0.006928682 secs
 ```
 
@@ -177,7 +177,7 @@ system.time({ y <- slow_cumsum(x) })
 
 ::: {.column}
 
-```
+```txt
    user  system elapsed
   0.112   0.007   0.118
 ```
@@ -208,7 +208,7 @@ system.time({ y <- cumsum(x) })
 
 ::: {.column}
 
-```
+```txt
    user  system elapsed
   0.002   0.000   0.003
 ```
@@ -255,7 +255,7 @@ toc()
 
 ::: {.column}
 
-```
+```txt
 0.126 sec elapsed
 ```
 
@@ -287,7 +287,7 @@ toc()
 
 ::: {.column}
 
-```
+```txt
 0.007 sec elapsed
 ```
 
@@ -355,7 +355,6 @@ most concise = most understandable = most performant</p>
 
 ::: { .column }
 
-
 ```r
 Rprof()                    # enable profiling
 # load and format data
@@ -395,7 +394,7 @@ available at:
 ::: { .column width="60%" }
 
 <small>
-```
+```txt
 > summaryRprof()
 
 ...
