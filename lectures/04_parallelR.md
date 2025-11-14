@@ -1,7 +1,6 @@
 ---
 title: Parallelization in R
 event: High Performance R
-output: slidy_presentation
 author: ["Heli Juottonen", "Maciej Janicki"]
 ---
 
