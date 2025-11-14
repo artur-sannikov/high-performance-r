@@ -55,7 +55,7 @@ atrocious_cumsum <- function(x) {
 
 Profile this function. Where does it spend the most time?
 
-## Ex 3
+### Ex 3
 
 Let $x$ be a numeric matrix of size $10000 \times 10000$. Try adding
 random numbers to:

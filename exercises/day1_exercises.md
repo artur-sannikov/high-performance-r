@@ -29,7 +29,7 @@ The function below is even worse than `slow_cumsum()`:
 
 Profile this function. Where does it spend the most time?
 
-## Ex 3
+### Ex 3
 
 Let *x* be a numeric matrix of size 10000 × 10000. Try adding random
 numbers to:
@@ -40,8 +40,8 @@ numbers to:
 Benchmark both variants. Which one is faster? Why?
 
     ##      expr      min       lq     mean   median       uq       max neval
-    ## 1 rowwise 76.11737 77.36295 79.12606 78.27375 80.29271  85.39909   100
-    ## 2 colwise 60.02458 60.60106 65.69465 61.19346 62.18560 436.03279   100
+    ## 1 rowwise 76.32683 77.00962 81.84616 77.36268 77.90320 450.25929   100
+    ## 2 colwise 60.04288 60.40378 61.62735 60.64839 60.96408  66.61402   100
 
 # 2. Memory
 

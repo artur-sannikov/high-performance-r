@@ -180,7 +180,7 @@ score than the other)?
 
 ::::
 
-# Map-Reduce: a more complex example
+# Functional programming: a more complex example
 
 :::: { .columns }
 
