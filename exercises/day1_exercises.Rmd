@@ -1,0 +1,275 @@
+---
+title: "High Performance R exercises - day 1"
+output: md_document
+---
+
+# 1. CPU
+
+### Ex 1
+
+Measure the execution time of `slow_cumsum()` and `cumsum()` with different
+sizes of the vector `x`. Plot the results for comparison.
+
+```{r echo=F}
+slow_cumsum <- function(x) {
+  result <- rep(0, length(x))
+  result[1] <- x[1]
+  for (i in 2:length(x)) {
+    result[i] <- result[i-1] + x[i]
+  }
+  result
+}
+```
+
+```{r echo=F, fig.width=5, fig.height=3.5}
+sizes <- 100000 * 2^(1:7)
+x <- lapply(sizes, function(size) rchisq(size, df = 1))
+t <- lapply(x, function(xe) system.time(slow_cumsum(xe))['elapsed'])
+t2 <- lapply(x, function(xe) system.time(cumsum(xe))['elapsed'])
+plot(sizes, t, type='b', col='blue')
+points(sizes, t2, type='b', col='red')
+legend('topleft', c('slow_cumsum', 'cumsum'), col=c('blue', 'red'), pch='o')
+```
+
+### Ex 2
+
+The function below is even worse than `slow_cumsum()`:
+
+```{r}
+atrocious_cumsum <- function(x) {
+  # we will "build up" the cumulative sum as we iterate over x
+  result <- c()
+  for (x_elem in x) {
+    if (is.null(result)) {
+      # if the result is empty, we start with just x[1]
+      result <- x_elem
+    } else {
+      # otherwise we append to the result the sum of the current
+      # element of x and the last element of result
+      result <- c(result, result[length(result)]+x_elem)  # DON'T!!! ;(
+    }
+  }
+  result
+}
+```
+
+Profile this function. Where does it spend the most time?
+
+## Ex 3
+
+Let $x$ be a numeric matrix of size $10000 \times 10000$. Try adding
+random numbers to:
+
+a) 100 randomly chosen **rows** of $x$,
+b) 100 randomly chosen **columns** of $x$.
+
+Benchmark both variants. Which one is faster? Why?
+
+```{r echo=F}
+library(microbenchmark)
+x <- matrix(rep(0, 10000 * 10000), nrow=10000)
+mb <- microbenchmark(
+  rowwise = {
+    idx <- sample(nrow(x), 100)
+    x[idx,] <- x[idx,] + rchisq(100*ncol(x), df = 1)
+  },
+  colwise = {
+    idx <- sample(ncol(x), 100)
+    x[,idx] <- x[,idx] + rchisq(100*nrow(x), df = 1)
+  }
+)
+summary(mb)
+```
+
+# 2. Memory
+
+### Ex 4
+
+Generate vectors of random numbers of type `integer` and `float`
+and sizes from 1 to 1000. Try to determine:
+
+- how many bytes does an individual element take?
+- how large is the overhead per the entire vector?
+
+Plot the object size depending on length.
+
+```{r echo=F, fig.width=5, fig.height=3.5}
+n <- c(seq(1, 9), seq(10, 100, 10))
+sizes <- sapply(n, function(x) object.size(rnorm(x)))
+model <- lm(sizes ~ n)
+plot(n, sizes)
+abline(model, col='red')
+model
+```
+
+### Ex 5
+
+Profile and plot the memory usage of `atrocious_cumsum()`. Explain the pattern.
+
+```{r echo=F, include=F}
+plot_memory <- function(main="") {
+  s <- summaryRprof(memory='ts', diff=F)
+  plot(as.numeric(rownames(s)), (s$vsize.small + s$vsize.large) / 1024^2,
+      type = 'l', xlab = 'time (s)', ylab = 'memory usage (MB)', main=main)
+}
+```
+
+```{r echo=F, include=F}
+x <- rchisq(200000, df = 1)
+Rprof(memory.profiling=T)
+y <- atrocious_cumsum(x)
+Rprof(NULL)
+```
+
+```{r echo=F, fig.width=5, fig.height=3.5}
+plot_memory()
+```
+
+### Ex 6
+
+Compare the memory usage of k-means clustering and hierarchical clustering
+(the latter together with the distance matrix calculation). Try different
+dataset sizes!
+
+You can use the word embeddings dataset.
+
+# 3. Functional programming
+
+**Note:** In all the exercises in this section, use the functional
+programming style.
+
+### Ex 7
+
+Write a function `powers(a, b)` that for two vectors $a, b$ calculates 
+a matrix $C$, with $c_{ij} = a_i^{b_j}$.
+
+```{r echo=F, include=F}
+powers <- function(a, b) t(matrix(rep(a, each=length(b)) ^ b, nrow=length(b)))
+```
+
+```{r}
+powers(c(2, 3, 5, 6), 1:3)
+```
+
+### Ex 8
+
+Write a function `binary(x)` that for a vector of integers `x` returns
+a matrix of binary representations of numbers from `x`: each row is a sequence
+of zeros and ones.
+
+```{r echo=F, include=F}
+binary <- function(x) {
+  d <- ceiling(max(log2(x+1)))
+  t(matrix(rep(x, each=d), nrow=d) %/% 2^(0:(d-1)) %% 2)
+}
+```
+
+```{r}
+binary(1:10)
+```
+
+### Ex 9
+
+Generalize the function from the previous exercise to `radix(x, base = 2)`
+which computes a representation with any base (2 = binary, 8 = octal etc.).
+
+```{r echo=F, include=F}
+radix <- function(x, base = 2) {
+  d <- ceiling(max(log(x+1, base = base)))
+  t(matrix(rep(x, each=d), nrow=d) %/% base^(0:(d-1)) %% base)
+}
+```
+
+```{r}
+radix(c(1, 8, 11, 16), base = 8)
+```
+
+### Ex 10
+
+The "3 vs 2 dice" game from the lecture involves rolling 5 six-sided dice
+- the number of possible combinations is only $6^5 = 7776$.
+
+Calculate the probability of winning with 3 dice brute-force - by enumerating
+all possible results.
+
+*Hint:* use the `radix()` function to convert single numbers to results
+on five dice (five-"digit" numbers in representation with base 6).
+
+```{r echo=F, include=F}
+dice_game_bruteforce <- function() {
+  scores <- radix(0:(6^5-1), base = 6)+1
+  mean(apply(scores[,1:3], 1, sum) > apply(scores[,4:5], 1, sum))
+}
+```
+
+```{r}
+dice_game_bruteforce()
+```
+
+### Ex 11
+
+The Central Limit Theorem says that a standardized mean of $n$ independent
+identically distributed random variables approaches the standard
+Normal distribution with increasing $n$. Let's test it!
+
+Define a function `sample_dice(n, m)` that does the following:
+
+* generate $n$ experiments of $m$ dice rolls each,
+* for each experiment, calculate the mean score,
+* standardize: subtract $\frac{7}{2}$ (mean) and divide by
+  $\sqrt{\frac{105}{36}m^{-1}}$ (standard deviation).
+  
+Plot a histogram of the sample and draw the standard Normal distribution
+for reference.
+
+```{r echo=F, include=F}
+sample_dice <- function(n, m) {
+  x <- matrix(sample(6, n*m, replace=T), nrow=n, ncol=m)
+  (apply(x, 1, mean) - 7/2) / sqrt(105/(36 * m))
+}
+```
+
+```{r fig.width=5, fig.height=3.5}
+x <- sample_dice(100000, 1000)
+hist(x, probability=T, breaks=100)
+nx <- seq(min(x), max(x), length.out=1000)
+lines(nx, dnorm(nx), lwd=2, col='red')
+```
+
+### Ex 12
+
+For large samples, the function `sample_dice()` has high memory consumption
+- it generates all dice rolls at once. Write a function
+`sample_dice_batched(n, m, batch_size)` that generates `n` experiments
+in total, but only up to `batch_size` at once.
+
+Profile the memory usage of both functions!
+
+```{r echo=F, include=F}
+sample_dice_batched <- function(n, m, batch_size) {
+  c(sapply(1:(n %/% batch_size),
+           function(i) sample_dice(batch_size, m)),
+    sample_dice(n %% batch_size, m)
+  )
+}
+```
+
+```{r echo=F, fig.width=5, fig.height=3.5}
+Rprof(memory.profiling=T)
+y <- sample_dice(1000000, 1000)
+Rprof(NULL)
+plot_memory(main = "sample_dice")
+```
+
+```{r echo=FALSE, include=FALSE}
+rm(y)
+gc()
+```
+
+```{r echo=F, fig.width=5, fig.height=3.5}
+Rprof(memory.profiling=T)
+y <- sample_dice_batched(1000000, 1000, 1000)
+Rprof(NULL)
+plot_memory(main = "sample_dice_batched")
+```
+
