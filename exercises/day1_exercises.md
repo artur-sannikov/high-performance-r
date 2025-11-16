@@ -41,29 +41,16 @@ Benchmark both variants. Which one is faster? Why?
 
     ## Unit: milliseconds
     ##     expr      min       lq     mean   median       uq       max neval
-    ##  rowwise 75.33922 76.15237 80.99771 76.57596 77.21848 440.52543   100
-    ##  colwise 59.11462 59.67812 60.75210 59.87691 60.15137  67.30282   100
+    ##  rowwise 74.86363 76.08290 77.99266 77.13937 78.50107  84.66136   100
+    ##  colwise 59.02086 59.37603 64.72097 60.24611 60.80156 429.67535   100
 
 Repeat the exercise, but with *x* being a data frame instead of a
 matrix.
 
-    x <- as.data.frame(matrix(rep(0, 10000 * 10000), nrow=10000))
-    mb <- microbenchmark(
-      rowwise = {
-        idx <- sample(nrow(x), 100)
-        x[idx,] <- x[idx,] + rchisq(100*ncol(x), df = 1)
-      },
-      colwise = {
-        idx <- sample(ncol(x), 100)
-        x[,idx] <- x[,idx] + rchisq(100*nrow(x), df = 1)
-      }
-    )
-    mb
-
     ## Unit: milliseconds
     ##     expr       min        lq      mean    median        uq      max neval
-    ##  rowwise 625.60300 669.76761 690.83713 686.07618 697.72744 899.8295   100
-    ##  colwise  80.01301  80.53158  85.77904  80.87826  86.83814 130.8570   100
+    ##  rowwise 666.61448 686.33534 703.50893 695.17708 708.08313 946.4362   100
+    ##  colwise  80.62482  81.16428  84.08868  81.99897  83.91198 106.1579   100
 
 # 2. Memory
 

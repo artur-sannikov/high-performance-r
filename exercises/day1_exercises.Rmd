@@ -83,7 +83,7 @@ mb
 
 Repeat the exercise, but with $x$ being a data frame instead of a matrix.
 
-```{r}
+```{r echo=F}
 x <- as.data.frame(matrix(rep(0, 10000 * 10000), nrow=10000))
 mb <- microbenchmark(
   rowwise = {
