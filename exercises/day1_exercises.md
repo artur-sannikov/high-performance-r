@@ -5,7 +5,7 @@
 Measure the execution time of `slow_cumsum()` and `cumsum()` with
 different sizes of the vector `x`. Plot the results for comparison.
 
-![](day1_exercises_files/figure-markdown_strict/unnamed-chunk-2-1.png)
+![](day1_exercises_files/figure-markdown_strict/ex1-1.png)
 
 ### Ex 2
 
@@ -39,9 +39,31 @@ numbers to:
 
 Benchmark both variants. Which one is faster? Why?
 
-    ##      expr      min       lq     mean   median       uq       max neval
-    ## 1 rowwise 76.32683 77.00962 81.84616 77.36268 77.90320 450.25929   100
-    ## 2 colwise 60.04288 60.40378 61.62735 60.64839 60.96408  66.61402   100
+    ## Unit: milliseconds
+    ##     expr      min       lq     mean   median       uq       max neval
+    ##  rowwise 75.33922 76.15237 80.99771 76.57596 77.21848 440.52543   100
+    ##  colwise 59.11462 59.67812 60.75210 59.87691 60.15137  67.30282   100
+
+Repeat the exercise, but with *x* being a data frame instead of a
+matrix.
+
+    x <- as.data.frame(matrix(rep(0, 10000 * 10000), nrow=10000))
+    mb <- microbenchmark(
+      rowwise = {
+        idx <- sample(nrow(x), 100)
+        x[idx,] <- x[idx,] + rchisq(100*ncol(x), df = 1)
+      },
+      colwise = {
+        idx <- sample(ncol(x), 100)
+        x[,idx] <- x[,idx] + rchisq(100*nrow(x), df = 1)
+      }
+    )
+    mb
+
+    ## Unit: milliseconds
+    ##     expr       min        lq      mean    median        uq      max neval
+    ##  rowwise 625.60300 669.76761 690.83713 686.07618 697.72744 899.8295   100
+    ##  colwise  80.01301  80.53158  85.77904  80.87826  86.83814 130.8570   100
 
 # 2. Memory
 
@@ -55,7 +77,7 @@ sizes from 1 to 1000. Try to determine:
 
 Plot the object size depending on length.
 
-![](day1_exercises_files/figure-markdown_strict/unnamed-chunk-5-1.png)
+![](day1_exercises_files/figure-markdown_strict/ex4-1.png)
 
     ## 
     ## Call:
@@ -70,7 +92,7 @@ Plot the object size depending on length.
 Profile and plot the memory usage of `atrocious_cumsum()`. Explain the
 pattern.
 
-![](day1_exercises_files/figure-markdown_strict/unnamed-chunk-8-1.png)
+![](day1_exercises_files/figure-markdown_strict/ex5-1.png)
 
 ### Ex 6
 
@@ -169,7 +191,7 @@ for reference.
     nx <- seq(min(x), max(x), length.out=1000)
     lines(nx, dnorm(nx), lwd=2, col='red')
 
-![](day1_exercises_files/figure-markdown_strict/unnamed-chunk-18-1.png)
+![](day1_exercises_files/figure-markdown_strict/ex11-1.png)
 
 ### Ex 12
 
@@ -180,6 +202,6 @@ in total, but only up to `batch_size` at once.
 
 Profile the memory usage of both functions!
 
-![](day1_exercises_files/figure-markdown_strict/unnamed-chunk-20-1.png)
+![](day1_exercises_files/figure-markdown_strict/ex12a-1.png)
 
-![](day1_exercises_files/figure-markdown_strict/unnamed-chunk-22-1.png)
+![](day1_exercises_files/figure-markdown_strict/ex12b-1.png)

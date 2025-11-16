@@ -207,7 +207,7 @@ object.size(df$genus)
 
 In R, every variable is a one-dimensional vector by default.
 
-Most functions operate on vectors!
+Many functions are *vectorized*, i.e. operate on entire vectors.
 
 :::::
 
@@ -676,6 +676,98 @@ $idx
 
 ::::::
 
+# Copy-on-modify
+
+:::::: {.columns}
+
+::::: {.column}
+
+Several identifiers can point to the same value in memory.
+
+But if one of them is modified, the entire data structure is copied.
+
+:::::
+
+::::: {.column}
+
+:::: {.columns}
+::: {.column}
+<small>CODE</small>
+:::
+::: {.column style="text-align: right;"}
+<small>OUTPUT</small>
+:::
+::::
+
+:::: {.columns}
+::: {.column width="90%"}
+```r
+x <- c(1, 2, 3, 4, 5)
+# y points to the same vector as x
+y <- x
+y
+```
+:::
+::: {.column width="10%"}
+:::
+::::
+
+:::: {.columns}
+::: {.column width="40%"}
+:::
+::: {.column width="60%"}
+```txt
+[1] 1 2 3 4 5
+```
+:::
+::::
+
+:::: {.columns}
+::: {.column width="90%"}
+```r
+# now the whole vector is copied!
+y[3] <- 8
+y
+```
+:::
+::: {.column width="10%"}
+:::
+::::
+
+:::: {.columns}
+::: {.column width="40%"}
+:::
+::: {.column width="60%"}
+```txt
+[1] 1 2 8 4 5
+```
+:::
+::::
+
+:::: {.columns}
+::: {.column width="60%"}
+```r
+x
+```
+:::
+::: {.column width="40%"}
+:::
+::::
+
+:::: {.columns}
+::: {.column width="40%"}
+:::
+::: {.column width="60%"}
+```txt
+[1] 1 2 3 4 5
+```
+:::
+::::
+
+:::::
+
+::::::
+
 # Memory management
 
 <font style="font-weight: bold; color: var(--csc-magenta);">Low-level</font> (e.g. C)
@@ -766,4 +858,5 @@ plot(as.numeric(rownames(s)),
   * task-specific: e.g. sparse matrices,
 * do not keep data in memory longer than necessary,
   * `rm()` and `gc()` usually not needed, just well-structured code -> functions!
-* avoid copying large objects (see exercise).
+  * beware of *copy-on-modify*,
+* avoid *growing objects* (see exercise: `atrocious_cumsum()`).
