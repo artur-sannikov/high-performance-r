@@ -198,11 +198,8 @@ Breaking down the problem:
 
 ```r
 multi_dice <- function(n, dice)
-  apply(
-    matrix(
-      sample(6, n*dice, replace=T),
-      nrow=n, ncol=dice),
-    1, sum)
+  rowSums(matrix(
+	sample(6, n*dice, replace=T), nrow=n))
 
 dice_game <- function(n)
   mean(multi_dice(n, 3) > multi_dice(n, 2))
