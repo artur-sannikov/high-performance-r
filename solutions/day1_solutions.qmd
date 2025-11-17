@@ -1,0 +1,244 @@
+```{r}
+library(microbenchmark)
+```
+
+```{r}
+#| label: Slow cumulative sum function
+slow_cumsum <- function(x) {
+  result <- rep(0, length(x))
+  result[1] <- x[1]
+  for (i in 2:length(x)) {
+    result[i] <- result[i - 1] + x[i]
+  }
+  result
+}
+```
+
+```{r}
+x <- rchisq(1500000, df = 1)
+# Measure with Sys.time
+t <- Sys.time()
+y <- slow_cumsum(x)
+Sys.time() - t
+```
+```{r}
+# Measure with Sys.time
+t <- Sys.time()
+y <- cumsum(x)
+Sys.time() - t
+```
+
+```{r}
+mb <- microbenchmark(
+  slow_cumsum = {
+    slow_cumsum(x)
+  },
+  cumsum = {
+    cumsum(x)
+  },
+  unit = "s",
+  times = 50
+)
+plot(mb)
+```
+## Exercise 2
+
+
+```{r}
+atrocious_cumsum <- function(x) {
+  # we will "build up" the cumulative sum as we iterate over x
+  result <- c()
+  for (x_elem in x) {
+    if (is.null(result)) {
+      # if the result is empty, we start with just x[1]
+      result <- x_elem
+    } else {
+      # otherwise we append to the result the sum of the current
+      # element of x and the last element of result
+      result <- c(result, result[length(result)] + x_elem) # DON'T!!! ;(
+    }
+  }
+  result
+}
+```
+
+
+```{r}
+#| label: Profile atrocious_cumsum
+x <- rchisq(15000, df = 1)
+Rprof()
+atr <- atrocious_cumsum(x)
+Rprof(NULL)
+summaryRprof()$by.total
+```
+
+Most of the time is spend in `c()` append operation.
+
+## Exercise 3 
+
+```{r}
+x <- matrix(rep(0, 10000 * 10000), nrow = 10000)
+mb <- microbenchmark(
+  rowwise = {
+    idx <- sample(nrow(x), 100)
+    x[idx, ] <- x[idx, ] + rchisq(100 * ncol(x), df = 1)
+  },
+  colwise = {
+    idx <- sample(ncol(x), 100)
+    x[, idx] <- x[, idx] + rchisq(100 * nrow(x), df = 1)
+  }
+)
+mb
+```
+
+
+## Memory
+
+### Exercise 4
+
+```{r}
+n <- c(seq(1, 9), seq(10, 1000, 10))
+sizes <- sapply(n, function(x) object.size(rnorm(x)))
+model <- lm(sizes ~ n)
+
+plot(n, sizes)
+abline(model, col = "blue")
+```
+
+
+
+### Exercise 5
+
+```{r}
+x <- rchisq(15000, df = 1)
+Rprof(memory.profiling = TRUE)
+y <- atrocious_cumsum(x)
+Rprof(NULL)
+
+# display results
+s <- summaryRprof(memory = "ts", diff = FALSE)
+plot(as.numeric(rownames(s)),
+  (s$vsize.small + s$vsize.large) / 1024^3,
+  main = "Memory usage", xlab = "time (s)",
+  ylab = "memory usage (GB)", type = "l"
+)
+```
+
+## Functional programming
+
+### Exercise 7
+
+```{r}
+a <- seq(2, 6)
+b <- 1:3
+powers <- function(a, b) {
+  t(sapply(a, function(x) x^b))
+}
+powers(a, b)
+```
+
+## Exercise 8
+
+```{r}
+binary <- function(v) {
+  t(sapply(v, intToBits))[, 1:4]
+}
+binary(1:10)
+
+## Solution
+# binary <- function(x) {
+#   d <- ceiling(max(log2(x+1)))
+#   t(matrix(rep(x, each=d), nrow=d) %/% 2^(0:(d-1)) %% 2)
+# }
+```
+
+## Exercise 9
+
+```{r}
+radix <- function(x, base = 2) {
+  d <- ceiling(max(log(x + 1, base = base)))
+  t(matrix(rep(x, each = d), nrow = d) %/% base^(0:(d - 1)) %% base)
+}
+
+radix(c(1, 8, 11, 16), base = 8)
+```
+
+### Exercise 10
+
+```{r}
+multi_dice <- function(n, dice) {
+  rowSums(matrix(
+    sample(6, n * dice, replace = TRUE),
+    nrow = n
+  ))
+}
+
+dice_game_bruteforce <- function() {
+  scores <- radix(0:(6^5 - 1), base = 6) + 1
+  mean(rowSums(scores[, 1:3]) > rowSums(scores[, 4:5]))
+}
+
+mean(radix(multi_dice(1, 2)), base = 6)
+```
+
+### Exercise 11
+
+```{r}
+sample_dice <- function(n, m) {
+  x <- matrix(sample(6, n * m, replace = TRUE), nrow = n, ncol = m)
+  (rowMeans(x) - 7 / 2) / sqrt(105 / (36 * m))
+}
+
+x <- sample_dice(100000, 1000)
+hist(x, probability = TRUE, breaks = 100)
+nx <- seq(min(x), max(x), length.out = 1000)
+lines(nx, dnorm(nx), lwd = 2, col = "red")
+```
+
+### Exercise 12
+```{r}
+sample_dice_batched <- function(n, m, batch_size) {
+  c(
+    sapply(
+      1:(n %/% batch_size),
+      function(i) sample_dice(batch_size, m)
+    ),
+    sample_dice(n %% batch_size, m)
+  )
+}
+```
+
+```{r}
+#| fig-width: 5
+#| fig-height: 3.5
+Rprof(memory.profiling = TRUE)
+y <- sample_dice_batched(1000000, 1000, 1000)
+Rprof(NULL)
+plot_memory(main = "sample_dice_batched")
+```
+
+```{r}
+rm(x, y)
+gc(reset = TRUE)
+```
+
+```{r}
+#| fig-width: 5
+#| fig-height: 3.5
+Rprof(memory.profiling = TRUE)
+y <- sample_dice(1000000, 1000)
+Rprof(NULL)
+plot_memory(main = "sample_dice")
+x <- matrix(rep(0, 10000 * 10000), nrow = 10000)
+mb <- microbenchmark(
+  rowwise = {
+    idx <- sample(nrow(x), 100)
+    x[idx, ] <- x[idx, ] + rchisq(100 * ncol(x), df = 1)
+  },
+  colwise = {
+    idx <- sample(ncol(x), 100)
+    x[, idx] <- x[, idx] + rchisq(100 * nrow(x), df = 1)
+  }
+)
+mb
+```
