@@ -244,9 +244,63 @@ srun apptainer_wrapper exec Rscript --no-save brms.R # your R script file here
 
 Submit the batch job with `sbatch` in a login node shell as above. How does adding more cores change the running time? What would you say about the resource use of this example?
 
+### Ex 16: Array jobs
+
+Array jobs are another way to handle embarassingly parallel problems, for example using the same R script to process many files. Instead of submitting multiple jobs, several subtasks are submitted at once as an array job. The resources in the batch job script are for one subtask of the array.
+
+R script for one iteration of the for loop we had above:
+
+``` r
+# this lets us access the array number in R (from $SLURM_ARRAY_TASK_ID in the batch job script)
+arrays <- commandArgs(trailingOnly = TRUE)
+
+# listing the csv files in the folder communities
+comm_csv_list <- list.files(path = "/scratch/project_2016453/<your folder here>/communities", pattern = ".csv", full.names = TRUE) 
+
+comm_csv <- comm_csv_list[arrays[1]] # what is going on here?
+
+comm <- read.csv2(comm_csv, row.names = 1)
+nmds <- vegan::metaMDS(comm, trace = FALSE)
+Sys.sleep(5) # added to extend the running time of the small example
+print(nmds$stress)
+```
+
+Batch job script (note the line `--array`, the different format of the output and error files, and `$SLURM_ARRAY_TASK_ID`in the end of the last line):
+
+``` bash
+#!/bin/bash -l
+#SBATCH --job-name=my_array_job # name your job here
+#SBATCH --account=project_2016453 # project number of the course project
+#SBATCH --output=array_job_out_%A_%a.txt # note the different format
+#SBATCH --error=array_job_err_%A_%a.txt # note the different format
+#SBATCH --partition=small
+#SBATCH --time=00:05:00
+#SBATCH --ntasks=1
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=1000
+#SBATCH --array=1-3 # specific line to array jobs
+#SBATCH --reservation=high_perf_r_2 # only used during this course
+
+# Load r-env
+module load r-env
+
+# Clean up .Renviron file in home directory
+if test -f ~/.Renviron; then
+    sed -i '/TMPDIR/d' ~/.Renviron
+fi
+
+# Specify a temp folder path (add your personal folder here)
+echo "TMPDIR=/scratch/project_2016453/<your folder here>" >> ~/.Renviron 
+
+# Run the R script
+srun apptainer_wrapper exec Rscript --no-save my_array_script.R $SLURM_ARRAY_TASK_ID
+```
+
+
 # 6. Future for parallel R
 
-### Ex 16: Multiprocessing with `future`
+### Ex 17: Multiprocessing with `future`
 
 The package `future` and the family of R packages around it offer lots of possibilities for running R jobs in parallel, often without complicated modifications to sequential scripts. Here, we use the function `future_map` from the package `furrr` to run our distance matrix example in parallel using multiple cores.
 
@@ -316,59 +370,6 @@ echo "TMPDIR=/scratch/project_2016453/personal/<your folder here>" >> ~/.Renviro
 
 # Run the R script
 srun apptainer_wrapper exec Rscript --no-save future_map.R # your R script file here
-```
-
-### Ex 17: Array jobs
-
-Array jobs are another way to handle embarassingly parallel problems, for example using the same R script to process many files. Instead of submitting multiple jobs, several subtasks are submitted at once as an array job. The resources in the batch job script are for one subtask of the array.
-
-R script for one iteration of the for loop we had above:
-
-``` r
-# this lets us access the array number in R (from $SLURM_ARRAY_TASK_ID in the batch job script)
-arrays <- commandArgs(trailingOnly = TRUE)
-
-# listing the csv files in the folder communities
-comm_csv_list <- list.files(path = "/scratch/project_2016453/<your folder here>/communities", pattern = ".csv", full.names = TRUE) 
-
-comm_csv <- comm_csv_list[arrays[1]] # what is going on here?
-
-comm <- read.csv2(comm_csv, row.names = 1)
-nmds <- vegan::metaMDS(comm, trace = FALSE)
-Sys.sleep(5) # added to extend the running time of the small example
-print(nmds$stress)
-```
-
-Batch job script (note the line `--array`, the different format of the output and error files, and `$SLURM_ARRAY_TASK_ID`in the end of the last line):
-
-``` bash
-#!/bin/bash -l
-#SBATCH --job-name=my_array_job # name your job here
-#SBATCH --account=project_2016453 # project number of the course project
-#SBATCH --output=array_job_out_%A_%a.txt # note the different format
-#SBATCH --error=array_job_err_%A_%a.txt # note the different format
-#SBATCH --partition=small
-#SBATCH --time=00:05:00
-#SBATCH --ntasks=1
-#SBATCH --nodes=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=1000
-#SBATCH --array=1-3 # specific line to array jobs
-#SBATCH --reservation=high_perf_r_2 # only used during this course
-
-# Load r-env
-module load r-env
-
-# Clean up .Renviron file in home directory
-if test -f ~/.Renviron; then
-    sed -i '/TMPDIR/d' ~/.Renviron
-fi
-
-# Specify a temp folder path (add your personal folder here)
-echo "TMPDIR=/scratch/project_2016453/<your folder here>" >> ~/.Renviron 
-
-# Run the R script
-srun apptainer_wrapper exec Rscript --no-save my_array_script.R $SLURM_ARRAY_TASK_ID
 ```
 
 ### Ex 18: Multiple nodes with `future`
