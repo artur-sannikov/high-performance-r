@@ -2,9 +2,13 @@
 
 ### Ex 13 : foreach
 
-1.  In the course project folder on Puhti `/scratch/project_2016453/shared_data` there is a folder `shared_data` that contains three .csv files. Copy this folder to your personal folder under `/scratch/project_2016453/your_folder/communities`.
+1.  In the course project folder on Puhti
+    `/scratch/project_2016453/shared_data` there is a folder `shared_data` that
+    contains three .csv files. Copy this folder to your personal folder under
+    `/scratch/project_2016453/your_folder/communities`.
 
-2.  Start an RStudio session on the Puhti web interface (www.puhti.csc.fi) using the following resources:
+2.  Start an RStudio session on the Puhti web interface (www.puhti.csc.fi)
+    using the following resources:
 
     project: project_2016453
 
@@ -24,10 +28,10 @@
 
 Note: change the file path in the first command to your folder where you copied the `communities` folder
 
-``` r
+```r
 # creating a list of .csv files in a folder
 
-comm_csv_list <- list.files(path = "/scratch/project_2016453/xxxxxx/communities/", pattern = ".csv", full.names = TRUE) 
+comm_csv_list <- list.files(path = "/scratch/project_2016453/xxxxxx/communities/", pattern = ".csv", full.names = TRUE)
 
 # the for loop below goes through the .csv files in the list and carries out the same operations on each of them (reads in the csv file, carries out a distance-based NMDS ordination, and saves the stress value that describes the reliability of the ordination)
 
@@ -49,28 +53,27 @@ Hints: Which packages do you need to load? How can you tell `foreach` how many c
 
 What happens to the running time compared to the serial approach above?
 
-
 # 5. Running R on an HPC cluster
 
 ### Ex 14: Serial batch job
 
 1.  Prepare an R script to be run as a batch job: copy the R script below into a plain text file with the file ending .R. For example, you can use the script window in RStudio to prepare the R script and save it in your personal folder under the course project `/scratch` directory.
 
-``` r
+```r
 # this R script has two sections:
 
 # 1st one prints out some useful basic information of the R session
 
-print(sessionInfo()) # What does this do? 
+print(sessionInfo()) # What does this do?
 print(parallelly::availableCores()) # What does this do?
 print(Sys.getenv("SLURM_CPUS_PER_TASK")) # What does this do?
 
 # 2nd section runs the same ordination we used in the foreach example on three .csv files
-# Instead of a for loop, we use the map() function in the package purrr, which is 
+# Instead of a for loop, we use the map() function in the package purrr, which is
 # a tidyverse alternative to apply() functions.
 
 # Change the file path in the next command to your personal folder
-comm_csv_list <- list.files(path = "/scratch/project_2016453/personal/<add folder here>/communities/", pattern = ".csv", full.names = TRUE) 
+comm_csv_list <- list.files(path = "/scratch/project_2016453/personal/<add folder here>/communities/", pattern = ".csv", full.names = TRUE)
 
 # A function for running the same ordination we used with foreach
 ordination_function <- function(comm_csv) {
@@ -88,7 +91,7 @@ print(results)
 
 2.  Prepare a batch job script (plain text file, file ending .sh). For example, you can open a text file in the script window of RStudio, copy the code below there, and save the file with the ending .sh in the same folder as your R script above.
 
-``` bash
+```bash
 #!/bin/bash -l
 #SBATCH --job-name=my_batchjobtest # give your job a name here
 #SBATCH --account=project_2016453 # project number of the course project
@@ -111,7 +114,7 @@ if test -f ~/.Renviron; then
 fi
 
 # Specify a temp folder path (add your personal folder here)
-echo "TMPDIR=/scratch/project_2016453/<add your folder here>" >> ~/.Renviron 
+echo "TMPDIR=/scratch/project_2016453/<add your folder here>" >> ~/.Renviron
 
 # Run the R script
 srun apptainer_wrapper exec Rscript --no-save myscript.R #use your R script file here
@@ -121,13 +124,13 @@ srun apptainer_wrapper exec Rscript --no-save myscript.R #use your R script file
 
 4.  Submit the job to the Slurm batch queue system on Puhti:
 
-``` bash
+```bash
 sbatch my_batch_job.sh
 ```
 
 To view the status of the job:
 
-``` bash
+```bash
 squeue -u $USER
 # or
 squeue --me
@@ -135,13 +138,13 @@ squeue --me
 
 To cancel a submitted job:
 
-``` bash
+```bash
 scancel <job_id>
 ```
 
 When the job has finished, check the resources it used:
 
-``` bash
+```bash
 seff <job_id>
 ```
 
@@ -153,11 +156,11 @@ The R script should print the stress values in the output file defined in the ba
 
 In this exercise, we run an example with the package `brms` . From the website of the package (<https://paulbuerkner.com/brms/>):
 
-"*The **brms** package provides an interface to fit Bayesian generalized (non-)linear multivariate multilevel models using Stan. The formula syntax is very similar to that of the package lme4 to provide a familiar and simple interface for performing regression analyses*."
+"_The **brms** package provides an interface to fit Bayesian generalized (non-)linear multivariate multilevel models using Stan. The formula syntax is very similar to that of the package lme4 to provide a familiar and simple interface for performing regression analyses_."
 
 We are using is as an example of a package, where the use of multiple cores is built in. The only things we have to do to make use of multiple cores is reserve them in the batch job script, and set the number of cores in the function call with `cores = n`. Here, we compare model fitting with 1 core vs. 4 cores.
 
-``` r
+```r
 library(brms)
 library(microbenchmark)
 
@@ -168,11 +171,11 @@ fit_empty <- brm(count ~ zAge + zBase * Trt + (1|patient),
 
 # the actual test with different number of cores
 brms_results <- microbenchmark(
-  
+
   single_core = {update(fit_empty, recompile = FALSE,
       chains = 4, cores = 1)
     },
-  
+
   multicore = {update(fit_empty, recompile = FALSE,
     chains = 4, cores = 4)
     }, times = 3
@@ -183,7 +186,7 @@ print(brms_results)
 
 Batch job script:
 
-``` bash
+```bash
 #!/bin/bash -l
 #SBATCH --job-name=brms # give your job a name here
 #SBATCH --account=project_2016453 # project number of the course project
@@ -206,7 +209,7 @@ if test -f ~/.Renviron; then
 fi
 
 # Specify a temp folder path (add your personal folder here)
-echo "TMPDIR=/scratch/project_2016453/<add folder here>" >> ~/.Renviron 
+echo "TMPDIR=/scratch/project_2016453/<add folder here>" >> ~/.Renviron
 
 # Run the R script
 srun apptainer_wrapper exec Rscript --no-save brms.R # your R script file here
@@ -220,7 +223,7 @@ Array jobs are another way to handle embarassingly parallel problems, for exampl
 
 R script for one iteration of the for loop we had above:
 
-``` r
+```r
 # this lets us access the array number in R (from $SLURM_ARRAY_TASK_ID in the batch job script)
 arrays <- commandArgs(trailingOnly = TRUE)
 
@@ -228,7 +231,7 @@ arrays <- commandArgs(trailingOnly = TRUE)
 arrays <- as.numeric(arrays[1])
 
 # listing the csv files in the folder communities
-comm_csv_list <- list.files(path = "/scratch/project_2016453/<your folder here>/communities", pattern = ".csv", full.names = TRUE) 
+comm_csv_list <- list.files(path = "/scratch/project_2016453/<your folder here>/communities", pattern = ".csv", full.names = TRUE)
 
 # selecting the file corresponding to the array number from the file list
 comm_csv <- comm_csv_list[arrays]
@@ -241,7 +244,7 @@ print(nmds$stress)
 
 Batch job script (note the line `--array`, the different format of the output and error files, and `$SLURM_ARRAY_TASK_ID`in the end of the last line):
 
-``` bash
+```bash
 #!/bin/bash -l
 #SBATCH --job-name=my_array_job # name your job here
 #SBATCH --account=project_2016453 # project number of the course project
@@ -265,7 +268,7 @@ if test -f ~/.Renviron; then
 fi
 
 # Specify a temp folder path (add your personal folder here)
-echo "TMPDIR=/scratch/project_2016453/<your folder here>" >> ~/.Renviron 
+echo "TMPDIR=/scratch/project_2016453/<your folder here>" >> ~/.Renviron
 
 # Run the R script
 srun apptainer_wrapper exec Rscript --no-save my_array_script.R $SLURM_ARRAY_TASK_ID
@@ -279,7 +282,7 @@ The package `future` and the family of R packages around it offer lots of possib
 
 R script:
 
-``` r
+```r
 library(purrr)
 library(furrr) # one package of the future family of packages
 
@@ -292,7 +295,7 @@ ordination_function <- function(comm_csv) {
 }
 
 # listing the csv files in the folder communities
-comm_csv_list <- list.files(path = "/scratch/project_2016453/<your folder here>/communities", pattern = ".csv", full.names = TRUE) 
+comm_csv_list <- list.files(path = "/scratch/project_2016453/<your folder here>/communities", pattern = ".csv", full.names = TRUE)
 
 # sequential
 sequential <- system.time(results <- purrr::map(comm_csv_list, ordination_function))
@@ -312,12 +315,11 @@ If your jobs in these exercises keep running longer than 10 minutes, something i
 
 Note that `plan(multicore`) does not work in RStudio. If you want to try this example in RStudio, use `plan(multisession)` instead.
 
-
 ### Ex 18: Multiple nodes with `future`
 
 When the resources on one node are not anymore sufficient for a job, it is possible to use multiple nodes. This is a more advanced example compared to the ones above - it is not that easy to make this type of jobs work correctly in R. Because we are distributing the job over several nodes, specific packages are needed to handle the communication between the nodes. Here we are again using the `future` package and the `furr` package in the future package family (`furrr` calls `future` in the background).
 
-``` r
+```r
 library(furrr) # one package of the future family of packages
 
 # function that carries out the same ordination we used earlier
@@ -329,9 +331,9 @@ ordination_function <- function(comm_csv) {
 }
 
 # listing the csv files in the folder communities
-comm_csv_list <- list.files(path = "/scratch/project_2016453/<your folder here>/communities", pattern = ".csv", full.names = TRUE) 
+comm_csv_list <- list.files(path = "/scratch/project_2016453/<your folder here>/communities", pattern = ".csv", full.names = TRUE)
 
-# part spefic to multinode jobs starts 
+# part spefic to multinode jobs starts
 cl <- getMPIcluster()
 plan(cluster, workers = cl)
 
@@ -346,7 +348,7 @@ stopCluster(cl)
 
 Batch job script (note the partition, the lines for nodes, ntasks-per-node, and the modifications on the last line):
 
-``` bash
+```bash
 #!/bin/bash -l
 #SBATCH --job-name=future_map # give your job a name here
 #SBATCH --account=project_2016453 # project number of the course project
@@ -368,7 +370,7 @@ if test -f ~/.Renviron; then
 fi
 
 # Specify a temp folder path (add your personal folder here)
-echo "TMPDIR=/scratch/project_2016453/<add your folder here>" >> ~/.Renviron 
+echo "TMPDIR=/scratch/project_2016453/<add your folder here>" >> ~/.Renviron
 
 # Run the R script - note that this line is different from the other examples
 srun apptainer_wrapper exec RMPISNOW --no-save --slave -f future_cluster.R
@@ -380,15 +382,15 @@ If you are familiar with Linux commands and batch jobs in general, here is an ex
 
 Then, in the terminal, go to the specific node with: `ssh <node_number>`. Then, we can check the processes running for your job with top, htop or pstree (or another command for the same purpose you are familiar with):
 
-``` bash
+```bash
 top -u username
 ```
 
-``` bash
+```bash
 module load htop
 htop -u username
 ```
 
-``` bash
+```bash
 pstree username -np
 ```
