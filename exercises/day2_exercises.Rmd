@@ -113,7 +113,7 @@ ordination_function <- function(comm_csv) {
 # Running the function on the file list with the map() function in the package purrr
 results <- purrr::map(comm_csv_list, ordination_function)
 print(results)
-}
+
 ```
 
 2.  Prepare a batch job script (plain text file, file ending .sh). For example, you can open a text file in the script window of RStudio, copy the code below there, and save the file with the ending .sh in the same folder as your R script above.
