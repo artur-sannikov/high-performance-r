@@ -2,7 +2,7 @@
 
 ### Ex 13 : foreach
 
-1.  In the course project folder on Puhti `/scratch/project_2016453/shared_data` there is a folder `communities` that contains three .csv files. Copy this folder to your personal folder under `/scratch/project_2016453`.
+1.  In the course project folder on Puhti `/scratch/project_2016453/shared_data` there is a folder `shared_data` that contains three .csv files. Copy this folder to your personal folder under `/scratch/project_2016453/your_folder/communities`.
 
 2.  Start an RStudio session on the Puhti web interface (www.puhti.csc.fi) using the following resources:
 
