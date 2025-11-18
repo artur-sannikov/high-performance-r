@@ -296,7 +296,7 @@ print(sequential)
 
 # converting the sequential code into parallel with future_map
 plan(multicore)
-multiprocessing <- system.time(future_map(comm_csv_list, distfunction))
+multiprocessing <- system.time(future_map(comm_csv_list, ordination_function))
 print(multiprocessing)
 ```
 
