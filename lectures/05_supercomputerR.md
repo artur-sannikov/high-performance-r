@@ -72,6 +72,7 @@ Images from <https://csc-training.github.io/csc-env-eff/>
 ::: {.column }
 
 <br>
+
 - node: lots of cores
 - HPC cluster: lots of nodes
 

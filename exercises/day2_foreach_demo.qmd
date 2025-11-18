@@ -1,0 +1,87 @@
+---
+title: "Day 2 foreach demonstration"
+author: "High Performance R 2025"
+format: html
+editor: visual
+---
+
+## Getting started with parallel R: `foreach`
+
+Checking how many cores there are available in the session:
+
+```{r}
+parallelly::availableCores()
+```
+
+**Important:** do not use parallel::detectCores() on Puhti - it always returns the maximum number of cores in a node (40), no matter how many have been reserved. This causes problems!
+
+```{r}
+# do not use in scripts or R jobs on Puhti - this gives the wrong number of cores!
+parallel::detectCores()
+```
+
+Let's start from a simple for loop and check how long it runs:
+
+```{r}
+library(tictoc)
+
+tic()
+for (i in 1:3) {
+  sqrt(i)
+  Sys.sleep(5) # added to make this example script run longer
+}
+toc()
+```
+
+Same example as above but this time using the package `foreach` (still sequential, not parallel):
+
+```{r}
+library(foreach)
+library(tictoc)
+
+tic()
+foreach(i = 1:3, .combine = 'c') %do% {
+  sqrt(i)
+  Sys.sleep(5)
+}
+toc()
+```
+
+Running the same thing **in parallel** taking advantage of **3 cores**:
+
+```{r}
+
+library(doParallel)
+registerDoParallel(cores = 3) #registering a backend for foreach
+
+tic()
+foreach(i = 1:3, .combine = 'c') %dopar% {
+  sqrt(i)
+  Sys.sleep(5)
+}
+toc()
+
+# unregistering the backend by changing back to sequential:
+registerDoSEQ()
+```
+
+What would happen without the sleep step (= a very short run)? Why?
+
+```{r}
+# sequential
+tic()
+foreach(i = 1:3, .combine = 'c') %do% {
+  sqrt(i)
+}
+toc()
+```
+
+```{r}
+# parallel
+tic()
+doParallel::registerDoParallel(cores = 3)
+foreach(i = 1:3, .combine = 'c') %dopar% {
+  sqrt(i)
+}
+toc()
+```
