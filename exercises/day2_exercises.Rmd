@@ -69,7 +69,7 @@ registerDoParallel(cores = 3) #registering a backend for foreach
 stress_values <- c(length(comm_csv_list)) # create an empty vector of final length
 
 tic()
-foreach (comm_csv = comm_csv_list) %dopar% {
+foreach (comm_csv = comm_csv_list, .combine = 'c') %dopar% {
   comm <- read.csv2(comm_csv, row.names = 1)
   nmds <- vegan::metaMDS(comm, trace = FALSE)
   Sys.sleep(5) # added to extend the running time of the small example
