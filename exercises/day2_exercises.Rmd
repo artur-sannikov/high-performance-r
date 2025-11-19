@@ -254,10 +254,14 @@ R script for one iteration of the for loop we had above:
 # this lets us access the array number in R (from $SLURM_ARRAY_TASK_ID in the batch job script)
 arrays <- commandArgs(trailingOnly = TRUE)
 
+# converting the array number to a numeric value
+arrays <- as.numeric(arrays[1])
+
 # listing the csv files in the folder communities
 comm_csv_list <- list.files(path = "/scratch/project_2016453/<your folder here>/communities", pattern = ".csv", full.names = TRUE) 
 
-comm_csv <- comm_csv_list[arrays[1]] # what is going on here?
+# selecting the file corresponding to the array number from the file list
+comm_csv <- comm_csv_list[arrays]
 
 comm <- read.csv2(comm_csv, row.names = 1)
 nmds <- vegan::metaMDS(comm, trace = FALSE)
